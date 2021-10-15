@@ -10,6 +10,8 @@ import UIKit
 
 class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     
+    
+    @IBOutlet var filterLabel: UILabel!
     // Изображение на экране
     @IBOutlet var imageView: UIImageView!
     // аутлет для слайдера
@@ -82,10 +84,15 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     // Функция setFilter задана как функция UIAlertAction
     func setFilter(action: UIAlertAction) {
         // Проверка что картинка выбрана и существует
-        guard  currentImage != nil else { return }
+        guard  currentImage != nil else {
+            let ac = UIAlertController(title: "Choose photo first", message: nil, preferredStyle: .alert)
+            ac.addAction(UIAlertAction(title: "Okay", style: .default))
+            present(ac, animated: true)
+            return
+        }
         // Проверка и задание названия действия в alert controller
         guard let actionTitle = action.title else { return }
-        
+        filterLabel.text = action.title
         // Задаётся название фильтра соотвественно выбранного названия действия
         currentFilter = CIFilter(name: actionTitle)
         // Задали для начального изображения СIImage изображение currentImage
@@ -95,6 +102,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         applyProcessing()
     }
     
+
     // Функция для кнопки save
     @IBAction func save(_ sender: Any) {
         // Проверка что картинка для сохранения задана
