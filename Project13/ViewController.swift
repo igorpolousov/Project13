@@ -98,7 +98,12 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     // Функция для кнопки save
     @IBAction func save(_ sender: Any) {
         // Проверка что картинка для сохранения задана
-        guard let image = imageView.image else { return }
+        guard let image = imageView.image else {
+            let ac = UIAlertController(title: "Ooops", message: "There was no image chosen for save ", preferredStyle: .alert)
+            ac.addAction(UIAlertAction(title: "Ok", style: .default))
+            present(ac, animated: true)
+            return
+        }
         // Метод для сохранения измененной картинки в фотоальбом с заданной функцией imageSave
         UIImageWriteToSavedPhotosAlbum(image, self, #selector(imageSave(_:didFinishSavingWithError:contextInfo:)), nil)
     }
