@@ -58,6 +58,13 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         guard let image = info[.editedImage] as? UIImage else { return }
         // Убрали imagePickerController
         dismiss(animated: true)
+        imageView.alpha = 0
+        UIView.animate(withDuration: 1, delay: 0, options: []) {
+            self.imageView.alpha = 1
+        } completion: { finished in
+            self.currentImage = image
+        }
+
         // Текущее изображение равно полученному изображению
         currentImage = image
         
@@ -128,13 +135,19 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     
     // Функция для слайдера sepia
     @IBAction func sepiaChanged(_ sender: Any) {
-        let beginImage = CIImage(image: currentImage)
-        sepiaFilter.setValue(beginImage, forKey: kCIInputImageKey)
-        sepiaFilter.setValue(sepiaSlider.value, forKey: kCIInputIntensityKey)
-        guard let outputImage = sepiaFilter.outputImage else { return }
-        if let cgImage = context.createCGImage(outputImage, from: outputImage.extent) {
-            let processedImage = UIImage(cgImage: cgImage)
-            imageView.image = processedImage
+        guard let image = imageView.image else {
+            let ac = UIAlertController(title: "Choose photo first", message: nil, preferredStyle: .alert)
+            ac.addAction(UIAlertAction(title: "Okay", style: .cancel))
+            present(ac, animated: true)
+            return
+        }
+         let beginImage = CIImage(image: image)
+            sepiaFilter.setValue(beginImage, forKey: kCIInputImageKey)
+            sepiaFilter.setValue(sepiaSlider.value, forKey: kCIInputIntensityKey)
+            guard let outputImage = sepiaFilter.outputImage else { return }
+            if let cgImage = context.createCGImage(outputImage, from: outputImage.extent) {
+                let processedImage = UIImage(cgImage: cgImage)
+                imageView.image = processedImage
         }
     }
     
