@@ -16,6 +16,8 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     @IBOutlet var imageView: UIImageView!
     // аутлет для слайдера
     @IBOutlet var intensity: UISlider!
+    @IBOutlet var sepiaSlider: UISlider!
+    
     // Переменная для текущего изображения
     var currentImage: UIImage!
     
@@ -23,6 +25,8 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     var context: CIContext!
     //  Инструмент для обработки изображений
     var currentFilter: CIFilter!
+    // Фильтр для Sepia Slider
+    var sepiaFilter:CIFilter!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -32,8 +36,13 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(importPicture))
         // Создан объект для анализа изображений
         context = CIContext()
+        
+        sepiaFilter = CIFilter(name: "CISepiaTone")
+        
         // Задан фильтр при загрузке приложения CISepiaTone
-        currentFilter = CIFilter(name: "CISepiaTone")
+        currentFilter = CIFilter(name: "CIVignette")
+        filterLabel.text = currentFilter.name
+        
         
     }
     // Функция importPicture для вызова imagePickerController
@@ -49,6 +58,13 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         guard let image = info[.editedImage] as? UIImage else { return }
         // Убрали imagePickerController
         dismiss(animated: true)
+        imageView.alpha = 0
+        UIView.animate(withDuration: 1, delay: 0, options: []) {
+            self.imageView.alpha = 1
+        } completion: { finished in
+            self.currentImage = image
+        }
+
         // Текущее изображение равно полученному изображению
         currentImage = image
         
@@ -56,6 +72,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         let beginImage = CIImage(image: currentImage)
         // Установлено значение currentFilter, изображение CIImage as beginImage с ключом для ипользования введенного изображения
         currentFilter.setValue(beginImage, forKey: kCIInputImageKey)
+        //sepiaFilter.setValue(beginImage, forKey: kCIInputIntensityKey)
         applyProcessing()
     }
     
@@ -65,7 +82,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         ac.addAction(UIAlertAction(title: "CIBumpDistortion", style: .default, handler: setFilter))
         ac.addAction(UIAlertAction(title: "CIGaussianBlur", style: .default, handler: setFilter))
         ac.addAction(UIAlertAction(title: "CIPixellate", style: .default, handler: setFilter))
-        ac.addAction(UIAlertAction(title: "CISepiaTone", style: .default, handler: setFilter))
+        //ac.addAction(UIAlertAction(title: "CISepiaTone", style: .default, handler: setFilter))
         ac.addAction(UIAlertAction(title: "CITwirlDistortion", style: .default, handler: setFilter))
         ac.addAction(UIAlertAction(title: "CIUnsharpMask", style: .default, handler: setFilter))
         ac.addAction(UIAlertAction(title: "CIVignette", style: .default, handler: setFilter))
@@ -114,6 +131,24 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         }
         // Метод для сохранения измененной картинки в фотоальбом с заданной функцией imageSave
         UIImageWriteToSavedPhotosAlbum(image, self, #selector(imageSave(_:didFinishSavingWithError:contextInfo:)), nil)
+    }
+    
+    // Функция для слайдера sepia
+    @IBAction func sepiaChanged(_ sender: Any) {
+        guard let image = imageView.image else {
+            let ac = UIAlertController(title: "Choose photo first", message: nil, preferredStyle: .alert)
+            ac.addAction(UIAlertAction(title: "Okay", style: .cancel))
+            present(ac, animated: true)
+            return
+        }
+         let beginImage = CIImage(image: image)
+            sepiaFilter.setValue(beginImage, forKey: kCIInputImageKey)
+            sepiaFilter.setValue(sepiaSlider.value, forKey: kCIInputIntensityKey)
+            guard let outputImage = sepiaFilter.outputImage else { return }
+            if let cgImage = context.createCGImage(outputImage, from: outputImage.extent) {
+                let processedImage = UIImage(cgImage: cgImage)
+                imageView.image = processedImage
+        }
     }
     
     // Функция для кнопки слайдера при передвижении
